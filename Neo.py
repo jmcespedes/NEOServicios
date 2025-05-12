@@ -9,7 +9,7 @@ import re
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": "https://neoservicios.cl"}})
 
 # Configuración de la base de datos
 db_config = {
@@ -328,7 +328,7 @@ def chat():
             })
 
         
-    # Si pasa la validación, continúa con la lógica de actualización de sesión
+            # Si pasa la validación, continúa con la lógica de actualización de sesión
             actualizar_sesion(session_id, celular=celular, paso_actual='terminado')
 
             actualizar_sesion(session_id, celular=celular, paso_actual='finalizado')
