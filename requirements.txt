@@ -2,3 +2,4 @@ Flask==3.1.0
 flask_cors==5.0.1
 psycopg2_binary==2.9.9
 python-dotenv==1.1.0
+gunicorn
