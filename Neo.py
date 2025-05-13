@@ -9,7 +9,7 @@ import re
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "https://neoservicios.cl"}})
+CORS(app, origins=["https://www.neoservicios.cl"])
 ##CORS(app)
 
 @app.before_request
@@ -186,7 +186,8 @@ iconos_servicios = {
     "Peluqueria": "💇"
 }
 
-@app.route('/api/chat', methods=['POST'])
+@app.route('/', methods=['POST'])
+#@app.route('/api/chat', methods=['POST'])
 def chat():
     try:
         data = request.get_json()
@@ -363,9 +364,6 @@ def chat():
     except Exception as e:
         print(f"Error en el endpoint /api/chat: {e}")
         return jsonify({'error': 'Ocurrió un error procesando la solicitud.'})
-
-if __name__ == '__main__':
-    app.run(debug=True)
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
