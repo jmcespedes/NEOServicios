@@ -9,8 +9,8 @@ import re
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, origins=["https://www.neoservicios.cl"])
-##CORS(app)
+##CORS(app, origins=["https://www.neoservicios.cl"])
+CORS(app)
 
 @app.before_request
 def handle_options():
@@ -23,7 +23,7 @@ def handle_options():
 
 
 
-# Configuración de la base de datos
+
 db_config = {
     'host': os.getenv('DB_HOST'),
     'port': os.getenv('DB_PORT'),
@@ -60,7 +60,7 @@ def obtener_sesion(session_id):
 
 
 
-# Conexión a la base de datos
+
 def get_db_connection():
     try:
         conn = psycopg2.connect(**db_config)
@@ -70,7 +70,7 @@ def get_db_connection():
         print(f"Error de conexión a la base de datos: {e}")
         return None
 
-# Crear una nueva sesión
+
 def crear_sesion():
     session_id = str(uuid.uuid4())
     conn = get_db_connection()
@@ -138,7 +138,6 @@ def actualizar_sesion(session_id, **kwargs):
     finally:
         conn.close()
 
-# Obtener comunas con región
 def get_comunas_con_region(nombre_comuna):
     conn = get_db_connection()
     if not conn:
@@ -158,7 +157,6 @@ def get_comunas_con_region(nombre_comuna):
     finally:
         conn.close()
 
-# Obtener servicios para una comuna
 def get_servicios_por_comuna(comuna_nombre):
     conn = get_db_connection()
     if not conn:
@@ -177,7 +175,6 @@ def get_servicios_por_comuna(comuna_nombre):
     finally:
         conn.close()
 
-# Iconos por tipo de servicio
 iconos_servicios = {
     "Flete": "🚚",
     "Abogado": "⚖️",
@@ -209,11 +206,11 @@ def chat():
         if paso_actual == 'espera_comuna_region':
             user_response = data.get("response", "").strip()
             
-            # Buscar la comuna en la base de datos
+
             posibles_comunas = get_comunas_con_region(user_response)
 
             if len(posibles_comunas) > 1:
-                # Si hay varias posibles, se necesita desambiguar
+                # SI HAY MAS DE UNA COMUNA PIDE ELEGIR
                 comunas_con_region = [f"{c[1]} ({c[3]})" for c in posibles_comunas]
                 mensaje = "⚠️ Varias comunas coinciden. Por favor indica la comuna y su región (ej: *'Puente Alto, Metropolitana'*):\n"
                 mensaje += "\n".join([f"- {c}" for c in comunas_con_region])
@@ -224,7 +221,7 @@ def chat():
                 })
 
             if not posibles_comunas:
-                # Si no se encuentra ninguna comuna válida
+                # NO ENCUENTRA COMUNA
                 return jsonify({
                     'response': 'No reconozco esa comuna. Por favor indica una comuna válida de Chile.',
                     'session_id': session_id
@@ -233,17 +230,17 @@ def chat():
             comuna = posibles_comunas[0]
             comuna_id, comuna_nombre, region_id, region_nombre = comuna
 
-            # Actualizar la sesión con la comuna encontrada
+
             actualizar_sesion(session_id, comuna_id=comuna_id, region_id=region_id, paso_actual='espera_servicio')
 
-            # Buscar los servicios disponibles para la comuna
+
             servicios = get_servicios_por_comuna(comuna_nombre)
             if not servicios:
                 return jsonify({'response': f'⚠️ No hay servicios disponibles para {comuna_nombre}.', 'session_id': session_id})
 
             servicios_lista = [{"id": s[0], "nombre": s[1].lower()} for s in servicios]
 
-            # Respuesta con los servicios disponibles
+            # SERVICIOS DISPONIBLES
             respuesta = f'{comuna_nombre}, Región: {region_nombre} ✨ *Servicios disponibles:* ✨<br><br>'
             for i, servicio in enumerate(servicios_lista, 1):
                 icono = iconos_servicios.get(servicio['nombre'].capitalize(), "🔹")
@@ -289,8 +286,7 @@ def chat():
                 except:
                     pass
 
-            if servicio_encontrado:
-                # Actualizamos la sesión con el servicio seleccionado
+            if servicio_encontrado:                
                 actualizar_sesion(session_id, servicio_id=servicio_encontrado['id'], paso_actual='espera_celular')
                 return jsonify({
                     'response': f"✅ Servicio ingresado: *{servicio_encontrado['nombre'].capitalize()}*. Ahora dime tu número de celular (+56942674761).",
@@ -305,23 +301,22 @@ def chat():
         elif paso_actual == 'espera_celular':
             celular = data.get('response')
 
-            # Validar formato +569XXXXXXX
+            # formato +569XXXXXXX
             if not re.match(r'^\+569\d{8}$', celular):
                 return jsonify({
                     'response': "⚠️ Por favor indica un número de celular válido, con formato +569XXXXXXXX.",
                     'session_id': session_id
                 })
 
-            # Actualizar sesión como 'terminado'
+            # TERMINADO
             actualizar_sesion(session_id, celular=celular, paso_actual='terminado')
-            # Obtener datos necesarios de la sesión actual para registrar envío
-            datos_sesion = obtener_sesion(session_id)  # Asegúrate de que esta función te devuelve todo lo necesario
+            datos_sesion = obtener_sesion(session_id)
 
             region_id = datos_sesion['region_id']
             comuna_id = datos_sesion['comuna_id']
             servicio_id = datos_sesion['servicio_id']
 
-                # Registrar en tabla de envíos (psycopg2)
+                
             try:
                     conn = get_db_connection()
                     cursor = conn.cursor()

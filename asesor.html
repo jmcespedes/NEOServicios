@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEO Servicios</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+    .autocomplete-items {
+        position: absolute;
+        background-color: #1a1a1a;
+        border: 1px solid #00ffaa;
+        z-index: 99;
+        top: 100%;
+        left: 0;
+        right: 0;
+        list-style-type: none;
+        padding: 0;
+        margin: 5px 0 0 0;
+        max-height: 150px;
+        overflow-y: auto;
+    }
+
+    .autocomplete-items li {
+        padding: 10px;
+        cursor: pointer;
+        color: #00ffaa;
+    }
+
+    .autocomplete-items li:hover {
+        background-color: #333;
+    }
+    </style>
+
+
+    <style>
+        body {
+            background-color: #000;
+            color: #00ff99;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .hero {
+            padding: 100px 20px;
+            text-align: center;
+            background: linear-gradient(to right, #000, #002f2f);
+        }
+        .btn-neon {
+            background-color: transparent;
+            border: 2px solid #00ff99;
+            color: #00ff99;
+            transition: all 0.3s ease;
+        }
+        .btn-neon:hover {
+            background-color: #00ff99;
+            color: #000;
+        }
+        .service-icon {
+            font-size: 48px;
+            color: #00ff99;
+        }
+        footer {
+            background-color: #001a1a;
+            color: #00ff99;
+            padding: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="modal fade" id="gestorModal" tabindex="-1" aria-labelledby="gestorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background-color: #000; color: #00ff99; border-radius: 15px; border: 3px solid #00ff99;">
+        <div class="modal-header" style="border-bottom: 2px solid #00ff99;">
+            <h5 class="modal-title" id="gestorModalLabel">¿Qué significa ser Gestor en mi Comuna?</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="color: #00ff99;"></button>
+        </div>
+        <div class="modal-body">
+            <p><strong>Un Gestor de NEOServicios</strong> se preocupa de captar proveedores de los servicios que ofrecemos, buscan proveedores, lo informan a NEOServicios quien ingresará toda la información necesaria.</p>
+            <p><strong>¿Qué gana un Gestor?</strong> Sería nuestro socio en esa comuna (o comunas), y te daremos un gran porcentaje de lo que genere tu comuna.</p>
+        </div>
+        <div class="modal-footer" style="border-top: 2px solid #00ff99;">
+            <button type="button" class="btn btn-neon" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+        </div>
+    </div>
+    </div>
+
+    <section id="asesor" class="container py-5 text-center">
+        <h2>Asesor Virtual</h2>
+        <p>Puedes consultarme cualquier servicio y buscaré en nuestra red de proveedores por ti.</p>
+        <button class="btn btn-neon mt-3">Iniciar Chat</button>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 NEO Servicios. Todos los derechos reservados.</p>
+    </footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+    
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(0, 255, 153, 0.7); }
+        70% { box-shadow: 0 0 0 15px rgba(0, 255, 153, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(0, 255, 153, 0); }
+    }
+    
+    .neon-text {
+        text-shadow: 0 0 5px #00ff99, 0 0 10px #00ff99;
+    }
+</style>
+
+
+        <script>
+        //const API_BASE = 'http://localhost:5000';
+        const API_BASE = 'https://ferrelectrik.onrender.com'; // O tu dominio real en Render
+        </script>
+
+<body>
+<div id="chatbot-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; font-family: 'Roboto', sans-serif;">
+    <div id="chatbot-icon" style="cursor: pointer; background: linear-gradient(145deg, #00ff99, #00cc77); color: #000; width: 70px; height: 70px; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 20px rgba(0, 255, 153, 0.6); animation: float 4s ease-in-out infinite, pulse 2s infinite; transition: all 0.3s ease;">
+        <div style="font-size: 28px; transform: rotate(-10deg);">🤖</div>
+    </div>
+    
+    <div id="chatbot-window" style="display: none; width: 380px; height: 550px; background: linear-gradient(to bottom, #000000, #001010); color: #00ff99; border-radius: 15px; box-shadow: 0 0 20px rgba(0, 255, 153, 0.5); flex-direction: column; border: 1px solid #00ff99; overflow: hidden;">
+        <div style="background: linear-gradient(to right, #001a1a, #003333); padding: 15px 20px; border-bottom: 1px solid #00ff99; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-weight: bold; font-family: 'Orbitron', sans-serif; font-size: 16px; letter-spacing: 1px;" class="neon-text">🌌 NEOServicios AI</span>
+            <span id="chatbot-close" style="cursor: pointer; font-size: 24px; transition: all 0.3s ease;" onmouseover="this.style.transform='scale(1.2)'; this.style.color='#ffffff'" onmouseout="this.style.transform='scale(1)'; this.style.color='#00ff99'">×</span>
+        </div>
+        
+        <div id="chatbot-messages" style="flex: 1; padding: 15px; overflow-y: auto; background: #000; border: 1px solid #003333;">
+            <!-- Mensajes aparecerán aquí -->
+        </div>
+        
+        <div style="padding: 15px; border-top: 1px solid #00ff99; display: flex; background: linear-gradient(to right, #001a1a, #002222);">  
+        <div style="position: relative; width: 100%; max-width: 600px;">
+        <div style="display: flex;">
+        <div style="flex: 1; position: relative;">
+        <input
+            type="text"
+            id="chatbot-input"
+            style="width: 100%; padding: 12px 15px; border: 1px solid #00ff99; border-radius: 25px; outline: none; background-color: rgba(0, 20, 20, 0.8); color: #00ff99; font-size: 14px; transition: all 0.3s ease;"
+            placeholder="Escribe tu mensaje..."
+            autocomplete="off"
+            onfocus="this.style.boxShadow='0 0 10px rgba(0, 255, 153, 0.5)'; this.style.borderColor='#ffffff'"
+            onblur="this.style.boxShadow='none'; this.style.borderColor='#00ff99'"
+        />
+
+        <ul id="autocomplete-list"></ul>
+        <ul id="autocompletado-lista" style="
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: rgba(0, 20, 20, 0.95);
+            border: 1px solid #00ff99;
+            border-radius: 8px;
+            color: #00ff99;
+            width: 100%;
+            z-index: 1000;
+            display: none;
+            max-height: 200px;
+            overflow-y: auto;
+        "></ul>
+        </div>
+
+        <button
+        id="chatbot-send"
+        style="margin-left: 10px; width: 50px; height: 50px; background: linear-gradient(145deg, #00ff99, #00cc77); color: #000; border: none; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 18px; transition: all 0.3s ease; display: flex; justify-content: center; align-items: center;"
+        onmouseover="this.style.transform='rotate(10deg) scale(1.1)'; this.style.boxShadow='0 0 15px rgba(0, 255, 153, 0.8)'"
+        onmouseout="this.style.transform='rotate(0) scale(1)'; this.style.boxShadow='none'"
+        >➤</button>
+    </div>
+    </div>
+
+
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        const API_BASE = 'http://localhost:5000'; // Cambia aquí al backend real
+
+        let currentSession = {
+            session_id: null,
+            region_id: null,
+            comuna_id: null,
+            comuna: null, 
+            servicio_id: null,
+            action: null,
+            servicios: [],
+            celular: null
+        };
+
+        function fadeIn(element) {
+            element.style.opacity = 0;
+            element.style.transform = "translateY(10px)";
+            element.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+            setTimeout(() => {
+                element.style.opacity = 1;
+                element.style.transform = "translateY(0)";
+            }, 10);
+        }
+
+        const chatWindow = document.getElementById('chatbot-window');
+        const chatIcon = document.getElementById('chatbot-icon');
+        const chatClose = document.getElementById('chatbot-close');
+        const chatMessages = document.getElementById('chatbot-messages');
+        const chatInput = document.getElementById('chatbot-input');
+        const chatSend = document.getElementById('chatbot-send');
+        const autocompleteList = document.getElementById('autocomplete-list');
+
+        chatIcon.addEventListener('click', () => {
+            if (chatWindow.style.display === 'flex') {
+                chatWindow.style.display = 'none';
+            } else {
+                chatWindow.style.display = 'flex';
+                if (chatMessages.children.length === 0) {
+                    iniciarConversacion();
+                }
+                chatInput.focus();
+            }
+        });
+
+        chatClose.addEventListener('click', () => {
+            chatWindow.style.opacity = 1;
+            chatWindow.style.transition = "opacity 0.3s ease";
+            chatWindow.style.opacity = 0;
+            setTimeout(() => {
+                chatWindow.style.display = 'none';
+                chatWindow.style.opacity = 1;
+            }, 300);
+        });
+
+        chatSend.addEventListener('click', sendMessage);
+
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // 🔧 AUTOCOMPLETAR
+        chatInput.addEventListener('input', async () => {
+            const query = chatInput.value.trim();
+            if (query.length < 3) {
+                autocompleteList.innerHTML = '';
+                autocompleteList.style.display = 'none';
+                return;
+            }
+            console.log('Acción actual:', currentSession.action);
+            try {
+                if (currentSession.action === 'esperar_comuna') {
+                    const res = await fetch(`${API_BASE}/autocompletar_comunas?q=${encodeURIComponent(query)}`);
+                    if (!res.ok) throw new Error('Error en autocompletar comunas');
+                    const comunas = await res.json();
+
+                    autocompleteList.innerHTML = '';
+                    if (comunas.length === 0) {
+                        autocompleteList.style.display = 'none';
+                        return;
+                    }
+
+                    comunas.forEach(comuna => {
+                        const li = document.createElement('li');
+                        li.textContent = comuna.nombre;
+                        li.addEventListener('mousedown', () => {
+                            chatInput.value = comuna.nombre;
+                            currentSession.comuna = comuna.nombre.toLowerCase();
+                            autocompleteList.innerHTML = '';
+                            autocompleteList.style.display = 'none';
+                            sendMessage();
+                        });
+                        autocompleteList.appendChild(li);
+                    });
+                    autocompleteList.style.display = 'block';
+                    //if (!currentSession.comuna) {
+                    //console.warn("⚠️ No se ha definido la comuna aún.");
+                    //return;
+                //}
+                } else if (currentSession.action === 'seleccionar_servicio') {
+                    const res = await fetch(`${API_BASE}/autocompletar_servicios?comuna=${encodeURIComponent(currentSession.comuna)}&q=${encodeURIComponent(query)}`);
+                    if (!res.ok) throw new Error('Error en autocompletar servicios');
+                    const servicios = await res.json();
+
+                    autocompleteList.innerHTML = '';
+                    if (servicios.length === 0) {
+                        autocompleteList.style.display = 'none';
+                        return;
+                    }
+
+                    servicios.forEach(servicio => {
+                        const li = document.createElement('li');
+                        li.textContent = servicio.nombre;
+                        li.addEventListener('mousedown', () => {
+                            chatInput.value = servicio.nombre;
+                            autocompleteList.innerHTML = '';
+                            autocompleteList.style.display = 'none';
+                            sendMessage();
+                        });
+                        autocompleteList.appendChild(li);
+                    });
+                    autocompleteList.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error autocompletar:', error);
+                autocompleteList.innerHTML = '';
+                autocompleteList.style.display = 'none';
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (e.target !== chatInput && e.target.parentNode !== autocompleteList) {
+                autocompleteList.style.display = 'none';
+            }
+        });
+
+        function iniciarConversacion() {
+            addMessage('bot', '👋 <span style="color: #00ffcc; font-weight: 500;">¡Hola humano!</span> Soy NEOServicios, tu asistente de servicios digitales. ¿En qué comuna te encuentras hoy?');
+            currentSession = {
+                session_id: null,
+                region_id: null,
+                comuna_id: null,
+                servicio_id: null,
+                action: 'esperar_comuna',
+                servicios: [],
+                pregunta_cliente: null,
+                celular: null
+            };
+        }
+
+        function sendMessage() {
+            const message = chatInput.value.trim();
+            if (message === '') return;
+
+            addMessage('user', message);
+            chatInput.value = '';
+            autocompleteList.innerHTML = '';
+            autocompleteList.style.display = 'none';
+
+            const typingIndicator = document.createElement('div');
+            typingIndicator.id = 'typing-indicator';
+            typingIndicator.innerHTML = `
+                <div style="display: flex; padding: 10px 15px; align-items: center;">
+                    <div class="typing-dot" style="width: 8px; height: 8px; background-color: #00ff99; border-radius: 50%; margin-right: 4px; animation: typingAnimation 1.4s infinite ease-in-out;"></div>
+                    <div class="typing-dot" style="width: 8px; height: 8px; background-color: #00ff99; border-radius: 50%; margin-right: 4px; animation: typingAnimation 1.4s infinite ease-in-out; animation-delay: 0.2s;"></div>
+                    <div class="typing-dot" style="width: 8px; height: 8px; background-color: #00ff99; border-radius: 50%; animation: typingAnimation 1.4s infinite ease-in-out; animation-delay: 0.4s;"></div>
+                </div>`;
+            chatMessages.appendChild(typingIndicator);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            const requestData = {
+                response: message,
+                session_id: currentSession.session_id,
+                servicio_id: currentSession.servicio_id
+            };
+
+            console.log("Body enviado al backend:", JSON.stringify(requestData));
+
+            fetch(`${API_BASE}/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestData)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.session_id) {
+                    currentSession.session_id = data.session_id;
+                    currentSession.region_id = data.region_id || currentSession.region_id;
+                    currentSession.comuna_id = data.comuna_id || currentSession.comuna_id;
+                    currentSession.servicio_id = data.servicio_id || currentSession.servicio_id;
+                    currentSession.pregunta_cliente = data.pregunta_cliente || currentSession.pregunta_cliente;
+                    currentSession.celular = data.celular || currentSession.celular;
+                }
+
+                const typingEl = document.getElementById('typing-indicator');
+                if (typingEl) typingEl.remove();
+
+                if (data.action) currentSession.action = data.action;
+                if (data.servicios) currentSession.servicios = data.servicios;
+
+                if (data.response) {
+                    const formatted = data.response
+                        .replace(/\*\*(.*?)\*\*/g, '<strong style="color: #00ffcc;">$1</strong>')
+                        .replace(/\n/g, '<br>')
+                        .replace(/- (.*?)(<br>|$)/g, '• <span style="color: #00ffaa;">$1</span>$2');
+                    addMessage('bot', formatted);
+                }
+            })
+            .catch(error => {
+                console.error('❌ Error en la petición:', error);
+                const typingEl = document.getElementById('typing-indicator');
+                if (typingEl) typingEl.remove();
+                addMessage('bot', '⚠️ <span style="color: #ff5555;">Parece que hubo un problema en la conexión...</span> Por favor, inténtalo de nuevo más tarde.');
+            });
+        }
+
+        function addMessage(sender, text) {
+            const msg = document.createElement('div');
+            msg.classList.add('message', sender);
+            msg.innerHTML = text;
+            fadeIn(msg);
+            chatMessages.appendChild(msg);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+    }); // Fin de DOMContentLoaded
+</script>
+
+
+
+
+</body>
+</html>
