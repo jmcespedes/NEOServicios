@@ -74,10 +74,9 @@ def chat():
             comuna = posibles_comunas[0]
             comuna_id, comuna_nombre, region_id, region_nombre = comuna
 
-            if not comuna:
-                t3 = time.time()
-                actualizar_sesion(session_id, comuna_id=comuna_id, region_id=region_id, paso_actual='espera_servicio')
-                print(f"[{time.time() - t3:.4f}s] actualizar_sesion (espera_servicio)")
+            # Solo aquí avanza el paso_actual
+            actualizar_sesion(session_id, comuna_id=comuna_id, region_id=region_id, paso_actual='espera_servicio')
+            print(f"[{time.time() - t0:.4f}s] actualizar_sesion (espera_servicio)")
 
             t4 = time.time()
             servicios = get_servicios_por_comuna(comuna_nombre)
@@ -141,6 +140,7 @@ def chat():
                     pass
 
             if servicio_encontrado:
+                # Solo aquí avanza el paso_actual
                 actualizar_sesion(session_id, servicio_id=servicio_encontrado['id'], paso_actual='espera_pregunta')
                 print(f"[{time.time() - t0:.4f}s] Servicio encontrado y sesión actualizada")
                 return jsonify({
