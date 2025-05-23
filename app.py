@@ -4,11 +4,14 @@ from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 import re
 
+print("===> Flask app iniciado correctamente")
+print("===> Antes de importar db")
+
 from db import (
     get_db_connection, crear_sesion, obtener_datos_sesion, actualizar_sesion,
     get_comunas_con_region, get_servicios_por_comuna, buscar_servicios_por_comuna_y_texto ,generar_codigo_verificacion
 )
-
+print("===> Después de importar db")
 app = Flask(__name__)
 CORS(app, origins=["https://www.neoservicios.cl"])
 
