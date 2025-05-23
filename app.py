@@ -18,6 +18,8 @@ app = Flask(__name__)
 CORS(app, origins=["https://www.neoservicios.cl"], supports_credentials=True, methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type"])
 
 
+
+
 @app.before_request
 def force_https():
     if not request.is_secure and request.headers.get('X-Forwarded-Proto', 'http') != 'https':
