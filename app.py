@@ -1,6 +1,6 @@
 import os
 import time
-from flask import Flask, request, jsonify, make_response
+from flask import Flask, request, jsonify, make_response, redirect
 from flask_cors import CORS
 import re
 
@@ -16,6 +16,13 @@ app = Flask(__name__)
 ###CORS(app, origins=["https://www.neoservicios.cl"])
 
 CORS(app, origins=["https://www.neoservicios.cl"], supports_credentials=True, methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type"])
+
+
+@app.before_request
+def force_https():
+    if not request.is_secure and request.headers.get('X-Forwarded-Proto', 'http') != 'https':
+        url = request.url.replace('http://', 'https://', 1)
+        return redirect(url, code=301)
 
 
 iconos_servicios = {
