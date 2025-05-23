@@ -58,6 +58,7 @@ def chat():
                 comunas_con_region = [f"{c[1]} ({c[3]})" for c in posibles_comunas]
                 mensaje = "⚠️ Varias comunas coinciden. Por favor indica la comuna y su región (ej: *'Puente Alto, Metropolitana'*):\n"
                 mensaje += "\n".join([f"- {c}" for c in comunas_con_region])
+                # NO actualices el paso_actual aquí
                 return jsonify({
                     'response': mensaje,
                     'action': 'desambiguar_comuna',
@@ -66,15 +67,15 @@ def chat():
 
             if not posibles_comunas:
                 print(f"[{time.time() - t0:.4f}s] No se encontró comuna")
+                # NO actualices el paso_actual aquí
                 return jsonify({
                     'response': 'No reconozco esa comuna. Por favor indica una comuna válida de Chile.',
                     'session_id': session_id
                 })
 
+            # Solo si hay UNA comuna válida, avanza el paso
             comuna = posibles_comunas[0]
             comuna_id, comuna_nombre, region_id, region_nombre = comuna
-
-            # Solo aquí avanza el paso_actual
             actualizar_sesion(session_id, comuna_id=comuna_id, region_id=region_id, paso_actual='espera_servicio')
             print(f"[{time.time() - t0:.4f}s] actualizar_sesion (espera_servicio)")
 
