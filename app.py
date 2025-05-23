@@ -15,7 +15,9 @@ print("===> Después de importar db")
 app = Flask(__name__)
 CORS(app, origins=["https://www.neoservicios.cl"], supports_credentials=True, methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type"])
 
-
+@app.route('/', methods=['POST'])
+def chat():
+    print("===> POST recibido en /")
 
 @app.before_request
 def force_https():
