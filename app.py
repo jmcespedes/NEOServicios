@@ -8,8 +8,10 @@ from db import (
     get_comunas_con_region, get_servicios_por_comuna, buscar_servicios_por_comuna_y_texto ,generar_codigo_verificacion
 )
 
+##app = Flask(__name__)
+##CORS(app)
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=["https://www.neoservicios.cl"])
 
 @app.before_request
 def handle_options():
