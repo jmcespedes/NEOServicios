@@ -92,13 +92,10 @@ def chat():
 
             servicios_lista = [{"id": s[0], "nombre": s[1].lower()} for s in servicios]
 
-            respuesta = f"{comuna_nombre}, Región: {region_nombre} ✨ Servicios disponibles ✨<br><br>"
-            for i, servicio in enumerate(servicios_lista, 1):
-                icono = iconos_servicios.get(servicio['nombre'].capitalize(), "🔹")
-                respuesta += f"{i}. {icono} <b>{servicio['nombre'].capitalize()}</b> (ID: {servicio['id']})<br>"
-            respuesta += "<br>🔽 Selecciona el número, nombre o ID del servicio."
-
-            print(f"[{time.time() - t0:.4f}s] Respuesta enviada (espera_comuna_region)")
+            respuesta = (
+                f"Para {comuna_nombre}, Región: {region_nombre} tenemos {len(servicios_lista)} servicios disponibles.<br><br>"
+                "Por favor, selecciona un servicio del siguiente listado:"
+            )
             return jsonify({
                 'response': respuesta,
                 'session_id': session_id,
