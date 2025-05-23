@@ -13,7 +13,10 @@ from db import (
 )
 print("===> Después de importar db")
 app = Flask(__name__)
-CORS(app, origins=["https://www.neoservicios.cl"])
+###CORS(app, origins=["https://www.neoservicios.cl"])
+
+CORS(app, origins=["https://www.neoservicios.cl"], supports_credentials=True, methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type"])
+
 
 iconos_servicios = {
     "Flete": "🚚",
