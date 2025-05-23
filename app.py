@@ -9,22 +9,29 @@ print("===> Antes de importar db")
 
 from db import (
     get_db_connection, crear_sesion, obtener_datos_sesion, actualizar_sesion,
-    get_comunas_con_region, get_servicios_por_comuna, buscar_servicios_por_comuna_y_texto ,generar_codigo_verificacion
+    get_comunas_con_region, get_servicios_por_comuna, buscar_servicios_por_comuna_y_texto, generar_codigo_verificacion
 )
 print("===> Después de importar db")
-app = Flask(__name__)
-CORS(app, origins=["https://www.neoservicios.cl"], supports_credentials=True, methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type"])
 
-@app.route('/', methods=['POST'])
-def chat():
-    print("===> POST recibido en /")
+app = Flask(__name__)
+
+# CORS global: para pruebas, permite todos los orígenes
+CORS(app, origins="*", supports_credentials=True, methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type"])
+# Para producción, cambia a:
+# CORS(app, origins=["https://www.neoservicios.cl"], supports_credentials=True, methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type"])
+
+# Handler global de errores para asegurar headers CORS en errores
+@app.errorhandler(Exception)
+def handle_exception(e):
+    response = jsonify({'error': str(e)})
+    response.status_code = 500
+    return response
 
 @app.before_request
 def force_https():
     if not request.is_secure and request.headers.get('X-Forwarded-Proto', 'http') != 'https':
         url = request.url.replace('http://', 'https://', 1)
         return redirect(url, code=301)
-
 
 iconos_servicios = {
     "Flete": "🚚",
@@ -34,8 +41,11 @@ iconos_servicios = {
     "Peluqueria": "💇"
 }
 
-@app.route('/', methods=['POST'])
+@app.route('/', methods=['GET', 'POST'])
 def chat():
+    if request.method == 'GET':
+        return jsonify({'response': 'Método GET no soportado. Usa POST.'})
+
     t0 = time.time()
     try:
         data = request.get_json()
@@ -82,7 +92,6 @@ def chat():
                     'session_id': session_id
                 })
 
-            # Solo si hay UNA comuna válida, revisa si tiene servicios
             comuna = posibles_comunas[0]
             comuna_id, comuna_nombre, region_id, region_nombre = comuna
 
@@ -97,7 +106,6 @@ def chat():
                     'session_id': session_id
                 })
 
-            # Solo aquí actualiza la sesión y avanza de paso
             actualizar_sesion(session_id, comuna_id=comuna_id, region_id=region_id, paso_actual='espera_servicio')
             print(f"[{time.time() - t0:.4f}s] actualizar_sesion (espera_servicio)")
 
@@ -152,7 +160,6 @@ def chat():
                     pass
 
             if servicio_encontrado:
-                # Solo aquí avanza el paso_actual
                 actualizar_sesion(session_id, servicio_id=servicio_encontrado['id'], paso_actual='espera_pregunta')
                 print(f"[{time.time() - t0:.4f}s] Servicio encontrado y sesión actualizada")
                 return jsonify({
@@ -203,9 +210,9 @@ def chat():
                 conn = get_db_connection()
                 cursor = conn.cursor()
                 cursor.execute("""
-                    INSERT INTO envios_whatsapp (sesion_id, celular, region_id, comuna_id, servicio_id,pregunta_cliente)
+                    INSERT INTO envios_whatsapp (sesion_id, celular, region_id, comuna_id, servicio_id, pregunta_cliente)
                     VALUES (%s, %s, %s, %s, %s, %s)
-                """, (session_id, celular, region_id, comuna_id, servicio_id,pregunta_cliente))
+                """, (session_id, celular, region_id, comuna_id, servicio_id, pregunta_cliente))
                 conn.commit()
                 cursor.close()
                 conn.close()
