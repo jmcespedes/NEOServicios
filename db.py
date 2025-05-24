@@ -70,26 +70,49 @@ def obtener_datos_sesion(session_id):
     finally:
         conn.close()
 
-def actualizar_sesion(session_id, **kwargs):
+def actualizar_sesion(session_id, comuna_id=None, region_id=None, servicio_id=None, pregunta_cliente=None, celular=None, paso_actual=None, codigo_verificacion=None):
     conn = get_db_connection()
-    if not conn:
-        return None
-    try:
-        with conn.cursor() as cur:
-            set_clause = ", ".join([f"{k} = %s" for k in kwargs.keys()])
-            values = list(kwargs.values()) + [session_id]
-            cur.execute(f"""
-                UPDATE sesiones_servicios
-                SET {set_clause}, fecha_actualizacion = CURRENT_TIMESTAMP
-                WHERE session_id = %s
-                RETURNING id
-            """, values)
-            return cur.fetchone()[0]
-    except Exception as e:
-        print(f"Error al actualizar sesión: {e}")
-        return None
-    finally:
-        conn.close()
+    cursor = conn.cursor()
+
+    update_fields = []
+    params = []
+
+    if comuna_id is not None:
+        update_fields.append("comuna_id = %s")
+        params.append(comuna_id)
+
+    if region_id is not None:
+        update_fields.append("region_id = %s")
+        params.append(region_id)
+
+    if servicio_id is not None:
+        update_fields.append("servicio_id = %s")
+        params.append(servicio_id)
+
+    if pregunta_cliente is not None:
+        update_fields.append("pregunta_cliente = %s")
+        params.append(pregunta_cliente)
+
+    if celular is not None:
+        update_fields.append("celular = %s")
+        params.append(celular)
+
+    if paso_actual is not None:
+        update_fields.append("paso_actual = %s")
+        params.append(paso_actual)
+
+    if codigo_verificacion is not None:
+        update_fields.append("codigo_verificacion = %s")
+        params.append(codigo_verificacion)
+
+    if update_fields:
+        query = f"UPDATE sesiones_servicios SET {', '.join(update_fields)} WHERE session_id = %s"        
+        params.append(session_id)
+        cursor.execute(query, params)
+        conn.commit()
+
+    cursor.close()
+    conn.close()
 
 def get_comunas_con_region(nombre_comuna):
     conn = get_db_connection()
