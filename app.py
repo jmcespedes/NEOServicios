@@ -293,11 +293,26 @@ def chat():
                     'session_id': session_id
                 })
             else:
-                print(f"[{time.time() - t0:.4f}s] Código incorrecto")
-                return jsonify({
-                    'response': "❌ El código ingresado no es correcto. Por favor revisa el SMS y vuelve a intentarlo.",
-                    'session_id': session_id
-                })
+                print(f"[{time.time() - t0:.4f}s] Código incorrecto, regenerando código")
+                # Genera un nuevo código
+                nuevo_codigo = str(random.randint(1000, 9999))
+                # Envía el nuevo código por SMS
+                sms_enviado = enviar_codigo_sms(celular, nuevo_codigo)
+
+                if sms_enviado:
+                    # Guarda el nuevo código en la sesión
+                    actualizar_sesion(session_id, codigo_verificacion=nuevo_codigo)
+                    print(f"[{time.time() - t0:.4f}s] Nuevo código SMS enviado")
+                    return jsonify({
+                        'response': "❌ El código ingresado no es correcto. Te enviamos un nuevo código por SMS. Por favor revísalo e inténtalo de nuevo.",
+                        'session_id': session_id
+                    })
+                else:
+                    print(f"[{time.time() - t0:.4f}s] Error al enviar nuevo SMS")
+                    return jsonify({
+                        'response': "❌ El código ingresado no es correcto, pero hubo un problema al enviar un nuevo SMS. Por favor inténtalo de nuevo más tarde.",
+                        'session_id': session_id
+                    })
 
         elif paso_actual == 'finalizado':
             print(f"[{time.time() - t0:.4f}s] Sesión finalizada")
