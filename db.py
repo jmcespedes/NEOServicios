@@ -43,32 +43,27 @@ def crear_sesion():
 
 def obtener_datos_sesion(session_id):
     conn = get_db_connection()
-    if not conn:
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT session_id, comuna_id, region_id, servicio_id, pregunta_cliente, celular, paso_actual, codigo_verificacion
+        FROM sesiones_servicios
+        WHERE session_id = %s
+    """, (session_id,))
+    row = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    if not row:
         return None
-    try:
-        with conn.cursor() as cur:
-            cur.execute("""
-                SELECT region_id, comuna_id, servicio_id, celular, paso_actual, pregunta_cliente
-                FROM sesiones_servicios
-                WHERE session_id = %s
-            """, (session_id,))
-            row = cur.fetchone()
-            if row:
-                return {
-                    'region_id': row[0],
-                    'comuna_id': row[1],
-                    'servicio_id': row[2],
-                    'celular': row[3],
-                    'paso_actual': row[4],
-                    'pregunta_cliente': row[5]
-                }
-            else:
-                return None
-    except Exception as e:
-        print(f"Error al obtener sesión: {e}")
-        return None
-    finally:
-        conn.close()
+    return {
+        'session_id': row[0],
+        'comuna_id': row[1],
+        'region_id': row[2],
+        'servicio_id': row[3],
+        'pregunta_cliente': row[4],
+        'celular': row[5],
+        'paso_actual': row[6],
+        'codigo_verificacion': row[7]
+    }
 
 def actualizar_sesion(session_id, comuna_id=None, region_id=None, servicio_id=None, pregunta_cliente=None, celular=None, paso_actual=None, codigo_verificacion=None):
     conn = get_db_connection()
