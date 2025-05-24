@@ -204,10 +204,10 @@ def chat():
 
         elif paso_actual == 'espera_pregunta':
             pregunta = data.get('response', '').strip()
-            if len(pregunta) < 50:
+            if len(pregunta) < 25:
                 print(f"[{time.time() - t0:.4f}s] Pregunta demasiado corta")
                 return jsonify({
-                    'response': "📝 Por favor formula tu pregunta con más detalle (mínimo 50 caracteres).",
+                    'response': "📝 Por favor formula tu pregunta con más detalle (mínimo 25 caracteres).",
                     'session_id': session_id
                 })
 
