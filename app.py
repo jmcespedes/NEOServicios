@@ -1,8 +1,10 @@
 import os
 import time
+import random
+import re
 from flask import Flask, request, jsonify, make_response, redirect
 from flask_cors import CORS
-import re
+from twilio.rest import Client
 
 print("===> Flask app iniciado correctamente")
 print("===> Antes de importar db")
@@ -20,7 +22,27 @@ CORS(app, origins="*", supports_credentials=True, methods=["GET", "POST", "OPTIO
 # Para producción, cambia a:
 # CORS(app, origins=["https://www.neoservicios.cl"], supports_credentials=True, methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type"])
 
-# Handler global de errores para asegurar headers CORS en errores
+# Configuración de Twilio
+TWILIO_SID = os.getenv("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH = os.getenv("TWILIO_AUTH_TOKEN")
+TWILIO_PHONE = os.getenv("TWILIO_PHONE_NUMBER")  # Debe ser un número de Twilio SMS, no WhatsApp
+
+twilio_client = Client(TWILIO_SID, TWILIO_AUTH)
+
+def enviar_codigo_sms(numero, codigo):
+    try:
+        mensaje = f"Tu código de verificación NEOServicios es: {codigo}"
+        message = twilio_client.messages.create(
+            body=mensaje,
+            from_=TWILIO_PHONE,
+            to=numero
+        )
+        print(f"✅ SMS enviado a {numero} (SID: {message.sid})")
+        return True
+    except Exception as e:
+        print(f"❌ Error al enviar SMS a {numero}: {e}")
+        return False
+
 @app.errorhandler(Exception)
 def handle_exception(e):
     response = jsonify({'error': str(e)})
@@ -168,7 +190,6 @@ def chat():
                 })
             else:
                 print(f"[{time.time() - t0:.4f}s] Servicio no reconocido")
-                # Aquí volvemos a mostrar la lista
                 servicios_texto = "\n".join([f"- {s['nombre'].capitalize()}" for s in servicios_lista])
                 mensaje = (
                     "⚠️ No reconozco ese servicio. Por favor selecciona uno de la lista:\n\n"
@@ -179,7 +200,7 @@ def chat():
                     'session_id': session_id,
                     'servicios': servicios_lista,
                     'action': 'seleccionar_servicio'
-        })
+                })
 
         elif paso_actual == 'espera_pregunta':
             pregunta = data.get('response', '').strip()
@@ -206,33 +227,77 @@ def chat():
                     'session_id': session_id
                 })
 
-            actualizar_sesion(session_id, celular=celular, paso_actual='terminado')
+            # Genera código de 4 dígitos
+            codigo = str(random.randint(1000, 9999))
+            print(f"[{time.time() - t0:.4f}s] Código generado: {codigo}")
+
+            # Guarda el código y el celular en la sesión
+            actualizar_sesion(session_id, celular=celular, codigo_verificacion=codigo, paso_actual='espera_codigo_sms')
+
+            # Envía el SMS
+            sms_enviado = enviar_codigo_sms(celular, codigo)
+
+            if sms_enviado:
+                print(f"[{time.time() - t0:.4f}s] Código SMS enviado correctamente")
+                return jsonify({
+                    'response': "🔒 Te enviamos un SMS con un código de 4 dígitos. Por favor ingrésalo aquí para verificar tu número.",
+                    'session_id': session_id
+                })
+            else:
+                print(f"[{time.time() - t0:.4f}s] Error al enviar SMS")
+                return jsonify({
+                    'response': "❌ Hubo un problema al enviar el SMS. Por favor verifica tu número o intenta más tarde.",
+                    'session_id': session_id
+                })
+
+        elif paso_actual == 'espera_codigo_sms':
+            codigo_usuario = data.get('response', '').strip()
             datos_sesion = obtener_datos_sesion(session_id)
-            region_id = datos_sesion['region_id']
-            comuna_id = datos_sesion['comuna_id']
-            servicio_id = datos_sesion['servicio_id']
-            pregunta_cliente = datos_sesion['pregunta_cliente']
+            codigo_real = datos_sesion.get('codigo_verificacion')
+            celular = datos_sesion.get('celular')
 
-            try:
-                t7 = time.time()
-                conn = get_db_connection()
-                cursor = conn.cursor()
-                cursor.execute("""
-                    INSERT INTO envios_whatsapp (sesion_id, celular, region_id, comuna_id, servicio_id, pregunta_cliente)
-                    VALUES (%s, %s, %s, %s, %s, %s)
-                """, (session_id, celular, region_id, comuna_id, servicio_id, pregunta_cliente))
-                conn.commit()
-                cursor.close()
-                conn.close()
-                print(f"[{time.time() - t7:.4f}s] INSERT INTO envios_whatsapp")
-            except Exception as e:
-                print("❌ Error al registrar en envios_whatsapp:", e)
+            print(f"[{time.time() - t0:.4f}s] Verificando código: usuario={codigo_usuario}, real={codigo_real}")
 
-            print(f"[{time.time() - t0:.4f}s] Solicitud registrada, paso_actual terminado")
-            return jsonify({
-                'response': "✅ ¡Gracias! Tu solicitud ha sido registrada. Pronto te contactaremos.",
-                'session_id': session_id
-            })
+            if codigo_usuario == codigo_real:
+                # Código correcto, registramos la solicitud
+                actualizar_sesion(session_id, paso_actual='terminado')
+
+                # Obtenemos los datos necesarios para registrar la solicitud
+                region_id = datos_sesion['region_id']
+                comuna_id = datos_sesion['comuna_id']
+                servicio_id = datos_sesion['servicio_id']
+                pregunta_cliente = datos_sesion['pregunta_cliente']
+
+                try:
+                    t7 = time.time()
+                    conn = get_db_connection()
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        INSERT INTO envios_whatsapp (sesion_id, celular, region_id, comuna_id, servicio_id, pregunta_cliente)
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                    """, (session_id, celular, region_id, comuna_id, servicio_id, pregunta_cliente))
+                    conn.commit()
+                    cursor.close()
+                    conn.close()
+                    print(f"[{time.time() - t7:.4f}s] INSERT INTO envios_whatsapp")
+                except Exception as e:
+                    print("❌ Error al registrar en envios_whatsapp:", e)
+                    return jsonify({
+                        'response': "❌ Hubo un problema al registrar tu solicitud. Por favor intenta más tarde.",
+                        'session_id': session_id
+                    })
+
+                print(f"[{time.time() - t0:.4f}s] Código verificado correctamente, solicitud registrada")
+                return jsonify({
+                    'response': "✅ ¡Gracias! Tu número fue verificado y tu solicitud ha sido registrada. Pronto te contactaremos.",
+                    'session_id': session_id
+                })
+            else:
+                print(f"[{time.time() - t0:.4f}s] Código incorrecto")
+                return jsonify({
+                    'response': "❌ El código ingresado no es correcto. Por favor revisa el SMS y vuelve a intentarlo.",
+                    'session_id': session_id
+                })
 
         elif paso_actual == 'finalizado':
             print(f"[{time.time() - t0:.4f}s] Sesión finalizada")
