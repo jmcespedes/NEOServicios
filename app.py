@@ -168,10 +168,18 @@ def chat():
                 })
             else:
                 print(f"[{time.time() - t0:.4f}s] Servicio no reconocido")
+                # Aquí volvemos a mostrar la lista
+                servicios_texto = "\n".join([f"- {s['nombre'].capitalize()}" for s in servicios_lista])
+                mensaje = (
+                    "⚠️ No reconozco ese servicio. Por favor selecciona uno de la lista:\n\n"
+                    f"{servicios_texto}"
+                )
                 return jsonify({
-                    'response': "⚠️ No reconozco ese servicio. Por favor selecciona uno de la lista.",
-                    'session_id': session_id
-                })
+                    'response': mensaje,
+                    'session_id': session_id,
+                    'servicios': servicios_lista,
+                    'action': 'seleccionar_servicio'
+        })
 
         elif paso_actual == 'espera_pregunta':
             pregunta = data.get('response', '').strip()
