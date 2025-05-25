@@ -18,9 +18,14 @@ print("===> Después de importar db")
 app = Flask(__name__)
 
 # CORS global: para pruebas, permite todos los orígenes
-CORS(app, origins="*", supports_credentials=True, methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type"])
+#CORS(app, origins="*", supports_credentials=True, methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type"])
 # Para producción, cambia a:
-# CORS(app, origins=["https://www.neoservicios.cl"], supports_credentials=True, methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type"])
+CORS(app, origins=[
+    "https://www.neoservicios.cl",
+    "https://neoservicios.cl"
+], supports_credentials=True,
+   methods=["GET", "POST", "OPTIONS"],
+   allow_headers=["Content-Type"])
 
 # Configuración de Twilio
 TWILIO_SID = os.getenv("TWILIO_ACCOUNT_SID")
