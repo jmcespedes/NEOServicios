@@ -140,14 +140,31 @@ def get_servicios_por_comuna(comuna_nombre):
             FROM proveedores
             WHERE LOWER(comuna) LIKE %s
         """, (f"%{comuna_nombre.lower()}%",))
-            servicios = cur.fetchall()
+            proveedores = cur.fetchall()
 
-            # Insertar "Adopción de Mascotas" como primer servicio si no está ya
-            adopcion_existe = any(s[0] == ADOPCION_ID for s in servicios)
-            if not adopcion_existe:
-                servicios = [(ADOPCION_ID, 'Adopción de Mascotas')] + servicios
+            servicios_set = set()
+            for prov in proveedores:
+                servicios_texto = prov[1]  # campo servicios
+                # Suponiendo que servicios_texto es string con servicios separados por coma
+                servicios_list = [s.strip().lower() for s in servicios_texto.split(',')]
+                servicios_set.update(servicios_list)
 
-            return servicios
+            servicios = list(servicios_set)
+
+            # Insertar "adopción de mascotas" si no está
+            if 'adopción de mascotas' not in servicios:
+                servicios = ['adopción de mascotas'] + servicios
+
+            # Construir lista con ids ficticios o nombres
+            servicios_lista = []
+            for s in servicios:
+                if s == 'adopción de mascotas':
+                    servicios_lista.append((9999, s))
+                else:
+                    servicios_lista.append((None, s))  # o asigna id real si tienes
+
+            return servicios_lista
+
     except Exception as e:
         print(f"Error en consulta de servicios: {e}")
         return []
