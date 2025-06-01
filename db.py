@@ -127,6 +127,7 @@ def get_comunas_con_region(nombre_comuna):
         return []
     finally:
         conn.close()
+ADOPCION_ID = 9999
 
 def get_servicios_por_comuna(comuna_nombre):
     conn = get_db_connection()
@@ -140,10 +141,11 @@ def get_servicios_por_comuna(comuna_nombre):
             WHERE LOWER(comuna) LIKE %s
         """, (f"%{comuna_nombre.lower()}%",))
             servicios = cur.fetchall()
-            
-            adopcion_existe = any(s[1].lower() == 'adopción de mascotas' for s in servicios)
+
+            # Insertar "Adopción de Mascotas" como primer servicio si no está ya
+            adopcion_existe = any(s[0] == ADOPCION_ID for s in servicios)
             if not adopcion_existe:
-                servicios = [(0, 'Adopción de Mascotas')] + servicios
+                servicios = [(ADOPCION_ID, 'Adopción de Mascotas')] + servicios
 
             return servicios
     except Exception as e:
