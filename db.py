@@ -128,7 +128,6 @@ def get_comunas_con_region(nombre_comuna):
     finally:
         conn.close()
 ADOPCION_ID = 9999
-
 def get_servicios_por_comuna(comuna_nombre):
     print(f"[get_servicios_por_comuna] Inicio para comuna: '{comuna_nombre}'")
     conn = get_db_connection()
@@ -137,45 +136,19 @@ def get_servicios_por_comuna(comuna_nombre):
         return []
     try:
         with conn.cursor() as cur:
-            print(f"[get_servicios_por_comuna] Ejecutando consulta proveedores para comuna '{comuna_nombre}'")
+            print(f"[get_servicios_por_comuna] Ejecutando consulta proveedores + adopción para comuna '{comuna_nombre}'")
             cur.execute("""
                 SELECT id, servicios
                 FROM proveedores
                 WHERE LOWER(comuna) LIKE %s
+                UNION
+                SELECT 9999 AS id, 'Adopción de Mascotas' AS servicios
             """, (f"%{comuna_nombre.lower()}%",))
-            proveedores = cur.fetchall()
-            print(f"[get_servicios_por_comuna] Proveedores encontrados: {len(proveedores)}")
+            servicios = cur.fetchall()
+            print(f"[get_servicios_por_comuna] Servicios obtenidos: {servicios}")
 
-            servicios_set = set()
-            for idx, prov in enumerate(proveedores):
-                servicios_texto = prov[1]  # campo servicios
-                print(f"[get_servicios_por_comuna] Proveedor {idx} servicios raw: '{servicios_texto}'")
-                if servicios_texto:
-                    servicios_list = [s.strip().lower() for s in servicios_texto.split(',')]
-                    print(f"[get_servicios_por_comuna] Proveedor {idx} servicios parseados: {servicios_list}")
-                    servicios_set.update(servicios_list)
-                else:
-                    print(f"[get_servicios_por_comuna] Proveedor {idx} tiene campo servicios vacío o nulo")
-
-            servicios = list(servicios_set)
-            print(f"[get_servicios_por_comuna] Servicios únicos encontrados: {servicios}")
-
-            # Insertar "adopción de mascotas" si no está
-            if 'adopción de mascotas' not in servicios:
-                print("[get_servicios_por_comuna] Agregando 'adopción de mascotas' a la lista de servicios")
-                servicios = ['adopción de mascotas'] + servicios
-            else:
-                print("[get_servicios_por_comuna] 'adopción de mascotas' ya está en la lista de servicios")
-
-            # Construir lista con ids ficticios o nombres
-            servicios_lista = []
-            for s in servicios:
-                if s == 'adopción de mascotas':
-                    servicios_lista.append((9999, s))
-                    print(f"[get_servicios_por_comuna] Añadido servicio adopción con id 9999")
-                else:
-                    servicios_lista.append((None, s))  # o asigna id real si tienes
-                    print(f"[get_servicios_por_comuna] Añadido servicio '{s}' sin id asignado")
+            # Construir lista con ids y nombres en minúscula
+            servicios_lista = [(s[0], s[1].lower()) for s in servicios]
 
             print(f"[get_servicios_por_comuna] Servicios finales para retorno: {servicios_lista}")
             return servicios_lista
