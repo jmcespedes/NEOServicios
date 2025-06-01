@@ -343,10 +343,10 @@ def chat():
 
             t6 = time.time()
             servicios = get_servicios_por_comuna(comuna_nombre)
-            print(f"[{time.time() - t6:.4f}s] get_servicios_por_comuna (espera_servicio)")
+            print(f"[{time.time() - t6:.4f}s] get_servicios_por_comuna  LINES 346 (espera_servicio)")
 
             servicios_lista = [{"id": s[0], "nombre": s[1].lower()} for s in servicios]
-
+            print(f"[{time.time() - t0:.4f}s] Servicios disponibles LINEA 349: {[s['id'] for s in servicios_lista]}")
             respuesta_normalizada = data.get('response', '').lower()
             servicio_encontrado = None
             for servicio in servicios_lista:
