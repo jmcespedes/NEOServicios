@@ -27,6 +27,7 @@ CORS(app, origins=[
    methods=["GET", "POST", "OPTIONS"],
    allow_headers=["Content-Type"])
 
+
 # Configuración de Twilio
 TWILIO_SID = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH = os.getenv("TWILIO_AUTH_TOKEN")
@@ -85,7 +86,8 @@ def adopcion():
 
     paso_actual = session.get('paso_actual', 'inicio_adopcion')
     user_response = data.get('response', '').strip().lower()
-    print (user_response)
+    print(f"[Adopción] paso_actual: {paso_actual}, user_response: {user_response}")
+
     if paso_actual == 'inicio_adopcion':
         actualizar_sesion(session_id, paso_actual='tipo_adopcion')
         return jsonify({
@@ -471,30 +473,6 @@ def chat():
                         'response': "❌ El código ingresado no es correcto, pero hubo un problema al enviar un nuevo SMS. Por favor inténtalo de nuevo más tarde.",
                         'session_id': session_id
                     })
-
-        elif paso_actual == 'inicio_adopcion':
-            data = request.get_json()
-            session_id = data.get("session_id")
-            if not session_id:
-                session = crear_sesion()
-                session_id = session['session_id']
-            else:
-                session = obtener_datos_sesion(session_id)
-                if not session:
-                    session = crear_sesion()
-                    session_id = session['session_id']
-
-            paso_actual = session.get('paso_actual', 'inicio_adopcion')
-            user_response = data.get('response', '').strip().lower()
-            print (user_response)
-            if paso_actual == 'inicio_adopcion':
-                actualizar_sesion(session_id, paso_actual='tipo_adopcion')
-                return jsonify({
-                    'response': "¿Quieres *adoptar* o *poner en adopción* una mascota?",
-                    'session_id': session_id,
-                    'action': 'seleccionar_opcion',
-                    'opciones': ['adoptar', 'poner en adopción']
-                })
 
         elif paso_actual == 'finalizado':
             print(f"[{time.time() - t0:.4f}s] Sesión finalizada")
