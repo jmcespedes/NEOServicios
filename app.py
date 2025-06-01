@@ -342,7 +342,7 @@ def chat():
                     return jsonify({
                         'response': "Has seleccionado Adopción de Mascotas. Te redirijo al servicio correspondiente.",
                         'session_id': session_id,
-                        'action': 'redirigir_adopcion'
+                        'action': 'iniciar_adopcion'  # Cambiamos 'redirigir_adopcion' por 'iniciar_adopcion'
                     })
                 else:
                     actualizar_sesion(session_id, servicio_id=servicio_encontrado['id'], paso_actual='espera_pregunta')
@@ -473,7 +473,28 @@ def chat():
                     })
 
         elif paso_actual == 'inicio_adopcion':
-            return redirect('/servicios/adopcion')
+            data = request.get_json()
+            session_id = data.get("session_id")
+            if not session_id:
+                session = crear_sesion()
+                session_id = session['session_id']
+            else:
+                session = obtener_datos_sesion(session_id)
+                if not session:
+                    session = crear_sesion()
+                    session_id = session['session_id']
+
+            paso_actual = session.get('paso_actual', 'inicio_adopcion')
+            user_response = data.get('response', '').strip().lower()
+            print (user_response)
+            if paso_actual == 'inicio_adopcion':
+                actualizar_sesion(session_id, paso_actual='tipo_adopcion')
+                return jsonify({
+                    'response': "¿Quieres *adoptar* o *poner en adopción* una mascota?",
+                    'session_id': session_id,
+                    'action': 'seleccionar_opcion',
+                    'opciones': ['adoptar', 'poner en adopción']
+                })
 
         elif paso_actual == 'finalizado':
             print(f"[{time.time() - t0:.4f}s] Sesión finalizada")
