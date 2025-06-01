@@ -336,10 +336,19 @@ def chat():
             if servicio_encontrado:
                 actualizar_sesion(session_id, servicio_id=servicio_encontrado['id'], paso_actual='espera_pregunta')
                 print(f"[{time.time() - t0:.4f}s] Servicio encontrado y sesión actualizada")
-                return jsonify({
-                    'response': f"✅ Servicio ingresado: *{servicio_encontrado['nombre'].capitalize()}*. Favor formula la pregunta al proveedor (que sea clara)",
-                    'session_id': session_id
-                })
+
+                if servicio_encontrado['id'] == 9999:
+                    # Redirigir al servicio de adopción
+                    return jsonify({
+                        'response': "Has seleccionado Adopción de Mascotas. Te redirijo al servicio correspondiente.",
+                        'session_id': session_id,
+                        'action': 'redirigir_adopcion'
+                    })
+                else:
+                    return jsonify({
+                        'response': f"✅ Servicio ingresado: *{servicio_encontrado['nombre'].capitalize()}*. Favor formula la pregunta al proveedor (que sea clara)",
+                        'session_id': session_id
+                    })
             else:
                 print(f"[{time.time() - t0:.4f}s] Servicio no reconocido")
                 servicios_texto = "\n".join([f"- {s['nombre'].capitalize()}" for s in servicios_lista])

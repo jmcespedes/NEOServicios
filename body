@@ -1,0 +1,59 @@
+<section class="hero">
+        <h1 class="display-4">NEOServicios</h1>
+        <p class="lead">Conectamos a la ciudadanía con los servicios que necesita. Rápido. Seguro. Humano.</p>
+        <a href="#asesor" class="btn btn-neon btn-lg mt-3">Hablar con el Asesor Virtual</a>
+
+        <button type="button" class="btn btn-neon btn-lg mt-3" data-bs-toggle="modal" data-bs-target="#gestorFormModal">
+        Quiero ser Gestor en mi Comuna
+        </button>
+
+        <button type="button" class="btn btn-neon btn-lg mt-3" data-bs-toggle="modal" data-bs-target="#gestorModal">
+        ¿Qué significa ser Gestor en mi Comuna?
+        </button>
+    </section>
+
+    <section class="container py-5">
+        <h2 class="text-center mb-4">¿Qué necesitas hoy?</h2>
+        <div class="row text-center">
+            <div class="col-md-4 mb-4">
+                <div class="service-icon">🚚</div>
+                <h4 class="mt-3">Fletes</h4>
+                <p>Consulta disponibilidad en tu comuna con solo un clic.</p>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="service-icon">🔧</div>
+                <h4 class="mt-3">Gasfitería</h4>
+                <p>Encuentra profesionales confiables rápidamente.</p>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="service-icon">💡</div>
+                <h4 class="mt-3">Electricidad</h4>
+                <p>Agenda a los mejores técnicos cerca de ti.</p>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="service-icon">⚖️</div>
+                <h4 class="mt-3">Abogados</h4>
+                <p>Asesoría legal en diferentes áreas. Rápido y confiable.</p>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="service-icon">🛢️</div>
+                <h4 class="mt-3">Cambio de Aceite</h4>
+                <p>Encuentra talleres o servicios móviles cerca de ti.</p>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="service-icon">📚</div>
+                <h4 class="mt-3">Profesor Particular</h4>
+                <p>Clases de apoyo escolar o preparación PSU/PDT.</p>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="service-icon">🧹</div>
+                <h4 class="mt-3">Aseo Domiciliario</h4>
+                <p>Servicios de limpieza para tu hogar u oficina.</p>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="service-icon">🔌</div>
+                <h4 class="mt-3">Reparación Electrodomésticos</h4>
+                <p>Soluciona problemas con lavadoras, microondas y más.</p>
+            </div>
+        </div>
+    </section>
