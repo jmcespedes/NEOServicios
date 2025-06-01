@@ -85,7 +85,7 @@ def adopcion():
 
     paso_actual = session.get('paso_actual', 'inicio_adopcion')
     user_response = data.get('response', '').strip().lower()
-
+    print (user_response)
     if paso_actual == 'inicio_adopcion':
         actualizar_sesion(session_id, paso_actual='tipo_adopcion')
         return jsonify({
@@ -334,17 +334,19 @@ def chat():
                     pass
 
             if servicio_encontrado:
-                actualizar_sesion(session_id, servicio_id=servicio_encontrado['id'], paso_actual='espera_pregunta')
-                print(f"[{time.time() - t0:.4f}s] Servicio encontrado y sesión actualizada")
-
+                # Aquí detectamos si se seleccionó el servicio de adopción
                 if servicio_encontrado['id'] == 9999:
-                    # Redirigir al servicio de adopción
+                    # Actualizamos el paso_actual a 'inicio_adopcion'
+                    actualizar_sesion(session_id, servicio_id=servicio_encontrado['id'], paso_actual='inicio_adopcion')
+                    print(f"[{time.time() - t0:.4f}s] Servicio de adopción seleccionado, sesión actualizada a inicio_adopcion")
                     return jsonify({
                         'response': "Has seleccionado Adopción de Mascotas. Te redirijo al servicio correspondiente.",
                         'session_id': session_id,
                         'action': 'redirigir_adopcion'
                     })
                 else:
+                    actualizar_sesion(session_id, servicio_id=servicio_encontrado['id'], paso_actual='espera_pregunta')
+                    print(f"[{time.time() - t0:.4f}s] Servicio encontrado y sesión actualizada")
                     return jsonify({
                         'response': f"✅ Servicio ingresado: *{servicio_encontrado['nombre'].capitalize()}*. Favor formula la pregunta al proveedor (que sea clara)",
                         'session_id': session_id
@@ -469,6 +471,9 @@ def chat():
                         'response': "❌ El código ingresado no es correcto, pero hubo un problema al enviar un nuevo SMS. Por favor inténtalo de nuevo más tarde.",
                         'session_id': session_id
                     })
+
+        elif paso_actual == 'inicio_adopcion':
+            return redirect('/servicios/adopcion')
 
         elif paso_actual == 'finalizado':
             print(f"[{time.time() - t0:.4f}s] Sesión finalizada")
