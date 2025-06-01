@@ -139,7 +139,13 @@ def get_servicios_por_comuna(comuna_nombre):
             FROM proveedores
             WHERE LOWER(comuna) LIKE %s
         """, (f"%{comuna_nombre.lower()}%",))
-            return cur.fetchall()
+            servicios = cur.fetchall()
+            
+            adopcion_existe = any(s[1].lower() == 'adopción de mascotas' for s in servicios)
+            if not adopcion_existe:
+                servicios = [(0, 'Adopción de Mascotas')] + servicios
+
+            return servicios
     except Exception as e:
         print(f"Error en consulta de servicios: {e}")
         return []
