@@ -68,6 +68,153 @@ iconos_servicios = {
     "Peluqueria": "💇"
 }
 
+# ------------------- Servicio de Adopción -------------------
+
+@app.route('/servicios/adopcion', methods=['POST'])
+def adopcion():
+    data = request.get_json()
+    session_id = data.get("session_id")
+    if not session_id:
+        session = crear_sesion()
+        session_id = session['session_id']
+    else:
+        session = obtener_datos_sesion(session_id)
+        if not session:
+            session = crear_sesion()
+            session_id = session['session_id']
+
+    paso_actual = session.get('paso_actual', 'inicio_adopcion')
+    user_response = data.get('response', '').strip().lower()
+
+    if paso_actual == 'inicio_adopcion':
+        actualizar_sesion(session_id, paso_actual='tipo_adopcion')
+        return jsonify({
+            'response': "¿Quieres *adoptar* o *poner en adopción* una mascota?",
+            'session_id': session_id,
+            'action': 'seleccionar_opcion',
+            'opciones': ['adoptar', 'poner en adopción']
+        })
+
+    elif paso_actual == 'tipo_adopcion':
+        if user_response not in ['adoptar', 'poner en adopción']:
+            return jsonify({
+                'response': "Por favor selecciona una opción válida: *adoptar* o *poner en adopción*.",
+                'session_id': session_id,
+                'action': 'seleccionar_opcion',
+                'opciones': ['adoptar', 'poner en adopción']
+            })
+        actualizar_sesion(session_id, adopcion_tipo=user_response)
+        if user_response == 'poner en adopción':
+            actualizar_sesion(session_id, paso_actual='tipo_mascota')
+            return jsonify({
+                'response': "¿Qué tipo de mascota quieres poner en adopción?",
+                'session_id': session_id,
+                'action': 'seleccionar_opcion',
+                'opciones': ['perro', 'gato']
+            })
+        else:
+            actualizar_sesion(session_id, paso_actual='espera_celular')
+            return jsonify({
+                'response': "Por favor, indica tu número de celular con formato +569XXXXXXXX para continuar.",
+                'session_id': session_id
+            })
+
+    elif paso_actual == 'tipo_mascota':
+        if user_response not in ['perro', 'gato']:
+            return jsonify({
+                'response': "Por favor selecciona un tipo válido: *perro* o *gato*.",
+                'session_id': session_id,
+                'action': 'seleccionar_opcion',
+                'opciones': ['perro', 'gato']
+            })
+        actualizar_sesion(session_id, tipo_mascota=user_response, paso_actual='tamano_mascota')
+        return jsonify({
+            'response': "¿Cuál es el tamaño de la mascota?",
+            'session_id': session_id,
+            'action': 'seleccionar_opcion',
+            'opciones': ['chico', 'mediano', 'grande']
+        })
+
+    elif paso_actual == 'tamano_mascota':
+        if user_response not in ['chico', 'mediano', 'grande']:
+            return jsonify({
+                'response': "Por favor selecciona un tamaño válido: *chico*, *mediano* o *grande*.",
+                'session_id': session_id,
+                'action': 'seleccionar_opcion',
+                'opciones': ['chico', 'mediano', 'grande']
+            })
+        actualizar_sesion(session_id, tamano_mascota=user_response, paso_actual='url_foto')
+        return jsonify({
+            'response': "Por favor ingresa el link URL donde está la foto de la mascota.",
+            'session_id': session_id
+        })
+
+    elif paso_actual == 'url_foto':
+        if not user_response.startswith('http'):
+            return jsonify({
+                'response': "Por favor ingresa una URL válida que comience con http o https.",
+                'session_id': session_id
+            })
+        actualizar_sesion(session_id, url_foto=user_response, paso_actual='caracteristicas')
+        return jsonify({
+            'response': "Ingresa alguna característica especial de la mascota.",
+            'session_id': session_id
+        })
+
+    elif paso_actual == 'caracteristicas':
+        actualizar_sesion(session_id, caracteristicas=user_response, paso_actual='espera_celular')
+        return jsonify({
+            'response': "Por último, por favor indica tu número de celular con formato +569XXXXXXXX.",
+            'session_id': session_id
+        })
+
+    elif paso_actual == 'espera_celular':
+        if not re.match(r'^\+569\d{8}$', user_response):
+            return jsonify({
+                'response': "⚠️ Por favor indica un número de celular válido, con formato +569XXXXXXXX.",
+                'session_id': session_id
+            })
+        actualizar_sesion(session_id, celular=user_response, paso_actual='finalizado')
+
+        # Guardar en base de datos
+        try:
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute("""
+                INSERT INTO adopcion_mascotas (sesion_id, adopcion_tipo, tipo_mascota, tamano_mascota, url_foto, caracteristicas, celular)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, (
+                session_id,
+                session.get('adopcion_tipo'),
+                session.get('tipo_mascota'),
+                session.get('tamano_mascota'),
+                session.get('url_foto'),
+                session.get('caracteristicas'),
+                user_response
+            ))
+            conn.commit()
+            cur.close()
+            conn.close()
+        except Exception as e:
+            print("❌ Error al guardar adopción:", e)
+            return jsonify({
+                'response': "❌ Hubo un problema al registrar tu solicitud de adopción. Por favor intenta más tarde.",
+                'session_id': session_id
+            })
+
+        return jsonify({
+            'response': "✅ ¡Gracias! Tu solicitud de adopción ha sido registrada. Pronto nos contactaremos contigo.",
+            'session_id': session_id
+        })
+
+    else:
+        return jsonify({
+            'response': "No entiendo tu mensaje. Por favor, intenta de nuevo.",
+            'session_id': session_id
+        })
+
+# ------------------- Fin Servicio de Adopción -------------------
+
 @app.route('/', methods=['GET', 'POST'])
 def chat():
     if request.method == 'GET':
@@ -264,10 +411,8 @@ def chat():
             print(f"[{time.time() - t0:.4f}s] Verificando código: usuario={codigo_usuario}, real={codigo_real}")
 
             if codigo_usuario == codigo_real:
-                # Código correcto, registramos la solicitud
                 actualizar_sesion(session_id, paso_actual='terminado')
 
-                # Obtenemos los datos necesarios para registrar la solicitud
                 region_id = datos_sesion['region_id']
                 comuna_id = datos_sesion['comuna_id']
                 servicio_id = datos_sesion['servicio_id']
@@ -299,13 +444,10 @@ def chat():
                 })
             else:
                 print(f"[{time.time() - t0:.4f}s] Código incorrecto, regenerando código")
-                # Genera un nuevo código
                 nuevo_codigo = str(random.randint(1000, 9999))
-                # Envía el nuevo código por SMS
                 sms_enviado = enviar_codigo_sms(celular, nuevo_codigo)
 
                 if sms_enviado:
-                    # Guarda el nuevo código en la sesión
                     actualizar_sesion(session_id, codigo_verificacion=nuevo_codigo)
                     print(f"[{time.time() - t0:.4f}s] Nuevo código SMS enviado")
                     return jsonify({
