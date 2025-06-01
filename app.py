@@ -363,8 +363,10 @@ def chat():
                             break
                 except:
                     pass
-
+            
             if servicio_encontrado:
+                print(f"[{time.time() - t0:.4f}s] Servicios disponibles: {[s['id'] for s in servicios_lista]}")
+                print(f"[{time.time() - t0:.4f}s] Respuesta recibida para servicio: {respuesta_normalizada}")
                 # Aquí detectamos si se seleccionó el servicio de adopción
                 if servicio_encontrado['id'] == 9999:
                     # Actualizamos el paso_actual a 'inicio_adopcion'
