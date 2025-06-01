@@ -78,11 +78,15 @@ def adopcion():
     if not session_id:
         session = crear_sesion()
         session_id = session['session_id']
+        print(f"[Adopción] Nueva sesión creada: {session_id}")
     else:
         session = obtener_datos_sesion(session_id)
         if not session:
             session = crear_sesion()
             session_id = session['session_id']
+            print(f"[Adopción] Sesión no encontrada, creada nueva: {session_id}")
+        else:
+            print(f"[Adopción] Sesión recuperada: {session_id} con paso_actual={session.get('paso_actual')}")
 
     paso_actual = session.get('paso_actual', 'inicio_adopcion')
     user_response = data.get('response', '').strip().lower()
@@ -90,6 +94,8 @@ def adopcion():
 
     if paso_actual == 'inicio_adopcion':
         actualizar_sesion(session_id, paso_actual='tipo_adopcion')
+        session_after = obtener_datos_sesion(session_id)
+        print(f"[Adopción] Sesión actualizada a tipo_adopcion: {session_after}")
         return jsonify({
             'response': "¿Quieres *adoptar* o *poner en adopción* una mascota?",
             'session_id': session_id,
@@ -99,6 +105,7 @@ def adopcion():
 
     elif paso_actual == 'tipo_adopcion':
         if user_response not in ['adoptar', 'poner en adopción']:
+            print(f"[Adopción] Opción inválida: {user_response}")
             return jsonify({
                 'response': "Por favor selecciona una opción válida: *adoptar* o *poner en adopción*.",
                 'session_id': session_id,
@@ -106,8 +113,12 @@ def adopcion():
                 'opciones': ['adoptar', 'poner en adopción']
             })
         actualizar_sesion(session_id, adopcion_tipo=user_response)
+        session_after = obtener_datos_sesion(session_id)
+        print(f"[Adopción] adopcion_tipo guardado: {session_after}")
         if user_response == 'poner en adopción':
             actualizar_sesion(session_id, paso_actual='tipo_mascota')
+            session_after = obtener_datos_sesion(session_id)
+            print(f"[Adopción] paso_actual actualizado a tipo_mascota: {session_after}")
             return jsonify({
                 'response': "¿Qué tipo de mascota quieres poner en adopción?",
                 'session_id': session_id,
@@ -116,6 +127,8 @@ def adopcion():
             })
         else:
             actualizar_sesion(session_id, paso_actual='espera_celular')
+            session_after = obtener_datos_sesion(session_id)
+            print(f"[Adopción] paso_actual actualizado a espera_celular: {session_after}")
             return jsonify({
                 'response': "Por favor, indica tu número de celular con formato +569XXXXXXXX para continuar.",
                 'session_id': session_id
@@ -123,6 +136,7 @@ def adopcion():
 
     elif paso_actual == 'tipo_mascota':
         if user_response not in ['perro', 'gato']:
+            print(f"[Adopción] Tipo mascota inválido: {user_response}")
             return jsonify({
                 'response': "Por favor selecciona un tipo válido: *perro* o *gato*.",
                 'session_id': session_id,
@@ -130,6 +144,8 @@ def adopcion():
                 'opciones': ['perro', 'gato']
             })
         actualizar_sesion(session_id, tipo_mascota=user_response, paso_actual='tamano_mascota')
+        session_after = obtener_datos_sesion(session_id)
+        print(f"[Adopción] paso_actual actualizado a tamano_mascota: {session_after}")
         return jsonify({
             'response': "¿Cuál es el tamaño de la mascota?",
             'session_id': session_id,
@@ -139,6 +155,7 @@ def adopcion():
 
     elif paso_actual == 'tamano_mascota':
         if user_response not in ['chico', 'mediano', 'grande']:
+            print(f"[Adopción] Tamaño mascota inválido: {user_response}")
             return jsonify({
                 'response': "Por favor selecciona un tamaño válido: *chico*, *mediano* o *grande*.",
                 'session_id': session_id,
@@ -146,6 +163,8 @@ def adopcion():
                 'opciones': ['chico', 'mediano', 'grande']
             })
         actualizar_sesion(session_id, tamano_mascota=user_response, paso_actual='url_foto')
+        session_after = obtener_datos_sesion(session_id)
+        print(f"[Adopción] paso_actual actualizado a url_foto: {session_after}")
         return jsonify({
             'response': "Por favor ingresa el link URL donde está la foto de la mascota.",
             'session_id': session_id
@@ -153,11 +172,14 @@ def adopcion():
 
     elif paso_actual == 'url_foto':
         if not user_response.startswith('http'):
+            print(f"[Adopción] URL inválida: {user_response}")
             return jsonify({
                 'response': "Por favor ingresa una URL válida que comience con http o https.",
                 'session_id': session_id
             })
         actualizar_sesion(session_id, url_foto=user_response, paso_actual='caracteristicas')
+        session_after = obtener_datos_sesion(session_id)
+        print(f"[Adopción] paso_actual actualizado a caracteristicas: {session_after}")
         return jsonify({
             'response': "Ingresa alguna característica especial de la mascota.",
             'session_id': session_id
@@ -165,6 +187,8 @@ def adopcion():
 
     elif paso_actual == 'caracteristicas':
         actualizar_sesion(session_id, caracteristicas=user_response, paso_actual='espera_celular')
+        session_after = obtener_datos_sesion(session_id)
+        print(f"[Adopción] paso_actual actualizado a espera_celular: {session_after}")
         return jsonify({
             'response': "Por último, por favor indica tu número de celular con formato +569XXXXXXXX.",
             'session_id': session_id
@@ -172,11 +196,14 @@ def adopcion():
 
     elif paso_actual == 'espera_celular':
         if not re.match(r'^\+569\d{8}$', user_response):
+            print(f"[Adopción] Celular inválido: {user_response}")
             return jsonify({
                 'response': "⚠️ Por favor indica un número de celular válido, con formato +569XXXXXXXX.",
                 'session_id': session_id
             })
         actualizar_sesion(session_id, celular=user_response, paso_actual='finalizado')
+        session_after = obtener_datos_sesion(session_id)
+        print(f"[Adopción] paso_actual actualizado a finalizado: {session_after}")
 
         # Guardar en base de datos
         try:
@@ -197,6 +224,7 @@ def adopcion():
             conn.commit()
             cur.close()
             conn.close()
+            print(f"[Adopción] Solicitud guardada en base de datos para sesión {session_id}")
         except Exception as e:
             print("❌ Error al guardar adopción:", e)
             return jsonify({
@@ -210,6 +238,7 @@ def adopcion():
         })
 
     else:
+        print(f"[Adopción] Paso desconocido: {paso_actual}")
         return jsonify({
             'response': "No entiendo tu mensaje. Por favor, intenta de nuevo.",
             'session_id': session_id
