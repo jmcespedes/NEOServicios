@@ -315,7 +315,7 @@ def chat():
             print(f"[{time.time() - t0:.4f}s] actualizar_sesion (espera_servicio)")
 
             servicios_lista = [{"id": s[0], "nombre": s[1].lower()} for s in servicios]
-            print(f"[{time.time() - t0:.4f}s] Servicios disponibles LINEA 349: {[s['id'] for s in servicios_lista]}")
+            print(f"[{time.time() - t0:.4f}s] Servicios disponibles LINEA 318: {[s['id'] for s in servicios_lista]}")
             respuesta = (
                 f"Para {comuna_nombre}, Región: {region_nombre} tenemos {len(servicios_lista)} servicios disponibles.<br><br>"
                 "Por favor, selecciona un servicio del siguiente listado:"
@@ -349,7 +349,7 @@ def chat():
             print(f"[{time.time() - t6:.4f}s] get_servicios_por_comuna  LINES 346 (espera_servicio)")
 
             servicios_lista = [{"id": s[0], "nombre": s[1].lower()} for s in servicios]
-            print(f"[{time.time() - t0:.4f}s] Servicios disponibles LINEA 349: {[s['id'] for s in servicios_lista]}")
+            print(f"[{time.time() - t0:.4f}s] Servicios disponibles LINEA 352: {[s['id'] for s in servicios_lista]}")
             respuesta_normalizada = data.get('response', '').lower()
             servicio_encontrado = None
             for servicio in servicios_lista:
@@ -371,6 +371,9 @@ def chat():
                 print(f"[{time.time() - t0:.4f}s] Servicios disponibles: {[s['id'] for s in servicios_lista]}")
                 print(f"[{time.time() - t0:.4f}s] Respuesta recibida para servicio: {respuesta_normalizada}")
                 # Aquí detectamos si se seleccionó el servicio de adopción
+
+                print ("Servicio encontrado")    
+                print (servicio_encontrado['id'])
                 if servicio_encontrado['id'] == 9999:
                     # Actualizamos el paso_actual a 'inicio_adopcion'
                     actualizar_sesion(session_id, servicio_id=servicio_encontrado['id'], paso_actual='inicio_adopcion')
