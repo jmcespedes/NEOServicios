@@ -70,11 +70,11 @@ iconos_servicios = {
 }
 
 # ------------------- Servicio de Adopción -------------------
-
 @app.route('/servicios/adopcion', methods=['POST'])
 def adopcion():
     data = request.get_json()
     session_id = data.get("session_id")
+
     if not session_id:
         session = crear_sesion()
         session_id = session['session_id']
@@ -88,7 +88,13 @@ def adopcion():
         else:
             print(f"[Adopción] Sesión recuperada: {session_id} con paso_actual={session.get('paso_actual')}")
 
-    paso_actual = session.get('paso_actual', 'inicio_adopcion')
+    paso_actual = session.get('paso_actual')
+    if paso_actual != 'inicio_adopcion':
+        print(f"[Adopción] Actualizando paso_actual de '{paso_actual}' a 'inicio_adopcion'")
+        actualizar_sesion(session_id, paso_actual='inicio_adopcion')
+        session = obtener_datos_sesion(session_id)
+        paso_actual = 'inicio_adopcion'
+
     user_response = data.get('response', '').strip().lower()
     print(f"[Adopción] paso_actual: {paso_actual}, user_response: {user_response}")
 
@@ -243,7 +249,6 @@ def adopcion():
             'response': "No entiendo tu mensaje. Por favor, intenta de nuevo.",
             'session_id': session_id
         })
-
 # ------------------- Fin Servicio de Adopción -------------------
 
 @app.route('/', methods=['GET', 'POST'])
