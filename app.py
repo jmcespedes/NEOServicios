@@ -315,7 +315,7 @@ def chat():
             print(f"[{time.time() - t0:.4f}s] actualizar_sesion (espera_servicio)")
 
             servicios_lista = [{"id": s[0], "nombre": s[1].lower()} for s in servicios]
-
+            print(f"[{time.time() - t0:.4f}s] Servicios disponibles LINEA 349: {[s['id'] for s in servicios_lista]}")
             respuesta = (
                 f"Para {comuna_nombre}, Región: {region_nombre} tenemos {len(servicios_lista)} servicios disponibles.<br><br>"
                 "Por favor, selecciona un servicio del siguiente listado:"
@@ -327,6 +327,7 @@ def chat():
                 'action': 'seleccionar_servicio'
             })
 
+                    
         elif paso_actual == 'espera_servicio':
             comuna_id = session['comuna_id']
             if not comuna_id:
@@ -342,6 +343,8 @@ def chat():
             print(f"[{time.time() - t5:.4f}s] SELECT nombre FROM comunas")
 
             t6 = time.time()
+            print ("Antes de buscar los servicios por comuna")
+            print (comuna_nombre)
             servicios = get_servicios_por_comuna(comuna_nombre)
             print(f"[{time.time() - t6:.4f}s] get_servicios_por_comuna  LINES 346 (espera_servicio)")
 
