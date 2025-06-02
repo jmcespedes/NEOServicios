@@ -68,7 +68,6 @@ iconos_servicios = {
     "Gasfiter": "🔧",
     "Peluqueria": "💇"
 }
-
 @app.route('/servicios/adopcion', methods=['POST'])
 def adopcion():
     data = request.get_json()
@@ -88,8 +87,8 @@ def adopcion():
             print(f"[Adopción] Sesión recuperada: {session_id} con paso_actual={session.get('paso_actual')}")
 
     paso_actual = session.get('paso_actual')
-    if paso_actual != 'inicio_adopcion':
-        print(f"[Adopción] Actualizando paso_actual de '{paso_actual}' a 'inicio_adopcion'")
+    if paso_actual is None or paso_actual == 'espera_servicio':
+        print(f"[Adopción] paso_actual no definido o en 'espera_servicio', inicializando a 'inicio_adopcion'")
         actualizar_sesion(session_id, paso_actual='inicio_adopcion')
         session = obtener_datos_sesion(session_id)
         paso_actual = 'inicio_adopcion'
@@ -114,7 +113,6 @@ def adopcion():
                 'action': 'seleccionar_opcion',
                 'opciones': ['adoptar', 'poner en adopción']
             })
-        # Guardar solo en sesión los campos que existen en la tabla sesiones
         actualizar_sesion(session_id, adopcion_tipo=user_response, paso_actual='espera_celular' if user_response == 'adoptar' else 'tipo_mascota')
         if user_response == 'poner en adopción':
             return jsonify({
@@ -186,7 +184,6 @@ def adopcion():
             })
         actualizar_sesion(session_id, celular=user_response, paso_actual='finalizado')
 
-        # Obtener datos completos de la sesión para insertar en adopcion_mascotas
         session_data = obtener_datos_sesion(session_id)
 
         try:
